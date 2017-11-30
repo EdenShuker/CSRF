@@ -38,10 +38,15 @@ router.get('/transfer', function(req, res) {
     res.render('bankTransferForm', { user : req.user });
 });
 
+router.get('/transfer/money', function (req, res) {
+    console.log('account: ' + req.query['accountNum'] + ', amount: ' + req.query['amount']);
+    res.send('Transfer by get');
+});
+
 
 router.post('/transfer', function(req, res) {
     console.log("amount: " + req.body.amount + ",  account number: " + req.body.accountNum);
-    res.send("Transfer executed")
+    res.send("Transfer executed by post");
 });
 
 
