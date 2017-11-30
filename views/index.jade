@@ -2,14 +2,19 @@ extends layout
 
 block content
   if (!user)
-    a(href="/login") Login
-    br
-    a(href="/register") Register
+    h3
+      a(href="/login") Login
+      br
+      a(href="/register") Register
   if (user)
     h2 You are currently logged in as #{user.username}
     h3
       a(href="/transfer/get") Transfer Money By *GET*
       br
       a(href="/transfer/post") Transfer Money By *POST*
+      br
+      a(href="/transfer-protected/get") Protected *GET*
+      br
+      a(href="/transfer-protected/post") Protected *POST*
       br
       a(href="/logout") Logout
