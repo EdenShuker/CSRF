@@ -3,8 +3,8 @@ var passport = require('passport');
 var Account = require('../models/account');
 var router = express.Router();
 
-var MongoClient = require('mongodb').MongoClient;
-var url = "mongodb://localhost:27017/mydb";
+var mongo = require('mongodb').MongoClient;
+var url = 'mongodb://localhost:27017/CSRF';
 
 
 router.get('/', function (req, res) {
@@ -104,16 +104,16 @@ router.get('/logout', function (req, res) {
 
 function getCsrfTokOf(username) {
     var tok = '';
-    MongoClient.connect(url, function(err, db) {
-        if (err) throw err;
-        var query = { username: username };
-        db.collection("CSRF").find(query).toArray(function(err, result) {
-            if (err) throw err;
-            console.log(result);
-            tok = result['csrfToken'];
+
+    mongo.connect(url, function (err, db) {
+        if (!err) {
+            var cursor = db.collection('accounts').findOne({username: username});
+            tok = cursor['csrfToken'];
             db.close();
-        });
+        }
     });
+
+
     return tok;
 }
 
