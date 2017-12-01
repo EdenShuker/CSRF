@@ -16,7 +16,7 @@ router.get('/register', function (req, res) {
 var csrf_token_counter = 1;
 router.post('/register', function (req, res) {
 
-    Account.register(new Account({username: req.body.username, csrfToken: csrf_token_counter.toString()}),
+    Account.register(new Account({username: req.body.username}),
         req.body.password, function (err, account) {
             if (err) {
                 return res.render('register', {account: account});
