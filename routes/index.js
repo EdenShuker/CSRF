@@ -3,9 +3,6 @@ var passport = require('passport');
 var Account = require('../models/account');
 var router = express.Router();
 
-var mongo = require('mongodb').MongoClient;
-var url = 'mongodb://localhost:27017/CSRF';
-
 
 router.get('/', function (req, res) {
     res.render('index', {user: req.user});
@@ -18,12 +15,12 @@ router.get('/register', function (req, res) {
 
 var csrf_token_counter = 1;
 router.post('/register', function (req, res) {
+
     Account.register(new Account({username: req.body.username, csrfToken: csrf_token_counter.toString()}),
         req.body.password, function (err, account) {
             if (err) {
                 return res.render('register', {account: account});
             }
-
             csrf_token_counter += 1;
             passport.authenticate('local')(req, res, function () {
                 res.redirect('/');
@@ -70,29 +67,37 @@ router.get('/transfer-protected/get', function (req, res) {
 });
 
 router.get('/transfer-protected/get/money', function (req, res) {
-    var tok = getCsrfTokOf(req.user.username);   // TODO get the token from mongodb
-    if (req.query['csrfToken'] === tok) {
-        console.log('account: ' + req.query['accountNum'] + ', amount: ' + req.query['amount']);
-        res.send('Transfer by Protected GET');
-    } else {
-        res.send('Wrong Token!')
-    }
+    var promise = getCsrfTokOf(req.user.username);
+    promise.then(function (user) {
+        console.log("csrfToker= " + user.csrfToken);
+        var tok = user.csrfToken;
+        if (req.query['csrfToken'] === tok) {
+            console.log('account: ' + req.query['accountNum'] + ', amount: ' + req.query['amount']);
+            res.send('Transfer by Protected GET');
+        } else {
+            res.send('Wrong Token!')
+        }
+    });
 });
 
 
 // protected transfer post
-router.get('/transfer/post', function (req, res) {
+router.get('/transfer-protected/post', function (req, res) {
     res.render('protectedTransferPOST', {user: req.user});
 });
 
-router.post('/transfer/post/money', function (req, res) {
-    var tok = getCsrfTokOf(req.user.username);   // TODO get the token from mongodb
-    if (req.body.csrfToken === tok) {
-        console.log("amount: " + req.body.amount + ",  account number: " + req.body.accountNum);
-        res.send("Transfer by Protected POST");
-    } else {
-        res.send('Wrong Token!')
-    }
+router.post('/transfer-protected/post/money', function (req, res) {
+    var promise = getCsrfTokOf(req.user.username);
+    promise.then(function (user) {
+        console.log("csrfToker= " + user.csrfToken);
+        var tok = user.csrfToken;
+        if (req.body.csrfToken === tok) {
+            console.log("amount: " + req.body.amount + ",  account number: " + req.body.accountNum);
+            res.send("Transfer by Protected POST");
+        } else {
+            res.send('Wrong Token!')
+        }
+    });
 });
 
 
@@ -103,18 +108,8 @@ router.get('/logout', function (req, res) {
 });
 
 function getCsrfTokOf(username) {
-    var tok = '';
-
-    mongo.connect(url, function (err, db) {
-        if (!err) {
-            var cursor = db.collection('accounts').findOne({username: username});
-            tok = cursor['csrfToken'];
-            db.close();
-        }
-    });
-
-
-    return tok;
+    var promise = Account.findOne({ username: username }).exec();
+    return promise;
 }
 
 
