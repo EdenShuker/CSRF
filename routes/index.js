@@ -13,7 +13,7 @@ router.get('/register', function (req, res) {
     res.render('register', {});
 });
 
-var csrf_token_counter = 1;
+
 router.post('/register', function (req, res) {
 
     Account.register(new Account({username: req.body.username}),
@@ -21,7 +21,6 @@ router.post('/register', function (req, res) {
             if (err) {
                 return res.render('register', {account: account});
             }
-            csrf_token_counter += 1;
             passport.authenticate('local')(req, res, function () {
                 res.redirect('/');
             });
